@@ -1,0 +1,49 @@
+require("Lua R-tree/class")
+require("Lua R-tree/bbox")
+require("Lua R-tree/nodes")
+require("Lua R-tree/rtree")
+
+print("START")
+
+lines = {}
+colors = {
+  {0, 0.5 ,0.5},
+  {0.5, 0 ,0.5},
+  {0.5, 0.5 ,0}
+}
+
+function gatherLines(obj, level)
+  print(level)
+  if obj.children != nil then
+    for i, v in pairs(obj.children) do
+      gatherLines(v, level + 1)
+    end
+  end
+  if obj.bbox != nil then
+    table.insert(lines, {
+      points = {
+        {x = obj.bbox.minX, y=1, z=obj.bbox.maxY},
+        {x = obj.bbox.maxX, y=1, z=obj.bbox.maxY},
+        {x = obj.bbox.maxX, y=1, z=obj.bbox.minY},
+        {x = obj.bbox.minX, y=1, z=obj.bbox.minY},
+      },
+      loop = true,
+      color = colors[level],
+      thickness = 0.025,
+      rotation={0,0,0}
+    })
+  end
+end
+
+local rtree = RTree()
+for i = 0, 100, 1 do
+  local x = math.random(-20, 10)
+  local y = math.random(-20, 10)
+  rtree:insert("bleep",BBox(x, y, x + math.random(1, 10), y+math.random(1,10)))
+end
+
+gatherLines(rtree, 0)
+
+print("Vector lines:")
+print(JSON.encode(lines))
+Global.setVectorLines(lines)
